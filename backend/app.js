@@ -74,6 +74,31 @@ app.get('/api/health', async (req, res) => {
   });
 });
 
+// ─── Public config (feature flags) ───────────────────────────────────────────
+/**
+ * @swagger
+ * /api/config:
+ *   get:
+ *     summary: Get public feature flags
+ *     tags: [Config]
+ *     responses:
+ *       200:
+ *         description: Feature flag values
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 showExploreLinks:
+ *                   type: boolean
+ *                   example: false
+ */
+app.get('/api/config', (req, res) => {
+  res.json({
+    showExploreLinks: process.env.SHOW_EXPLORE_LINKS === 'true',
+  });
+});
+
 // ─── 404 for unmatched routes ─────────────────────────────────────────────────
 app.use((req, res) => {
   res.status(404).json({ success: false, error: `Route ${req.method} ${req.originalUrl} not found` });

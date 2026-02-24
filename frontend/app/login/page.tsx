@@ -1,5 +1,6 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useToast } from '@/components/ui/Toast';
@@ -18,6 +19,14 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [errors,   setErrors]   = useState<{ email?: string; password?: string }>({});
   const [loading,  setLoading]  = useState(false);
+  const [showLinks, setShowLinks] = useState(false);
+
+  useEffect(() => {
+    fetch('http://localhost:3001/api/config')
+      .then(r => r.json())
+      .then(data => setShowLinks(data.showExploreLinks ?? false))
+      .catch(() => {});
+  }, []);
 
   const validate = () => {
     const e: { email?: string; password?: string } = {};
@@ -45,24 +54,36 @@ export default function LoginPage() {
     <div className="min-h-screen flex flex-col md:flex-row">
 
       {/* ── Left: Marketing panel ─────────────────────────────── */}
-      <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-indigo-700 via-indigo-600 to-violet-700 flex-col justify-between p-10 text-white">
+      <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-indigo-700 via-indigo-600 to-violet-700 flex-col justify-between p-10 text-white overflow-y-auto">
 
         {/* Brand */}
         <div>
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-2 mb-6">
             <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center text-sm font-bold">
               RSA
             </div>
             <span className="text-sm font-semibold tracking-wide text-white/80 uppercase">Rahul Shetty Academy</span>
           </div>
-          <div className="w-10 h-0.5 bg-white/30 mb-10" />
 
-          <h2 className="text-3xl font-bold leading-tight mb-3">
-            The #1 QA Practice<br />Hub for Automation<br />Engineers
-          </h2>
-          <p className="text-white/70 text-sm leading-relaxed mb-10 max-w-xs">
-            EventHub is a production-grade practice app designed so you can sharpen your testing skills on real-world scenarios — before your next interview or project.
-          </p>
+          {/* App preview screenshot — first, gives users a glimpse */}
+          <div className="rounded-xl overflow-hidden border border-white/20 shadow-2xl mb-8">
+            <div className="flex items-center gap-1.5 bg-black/30 px-3 py-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-red-400/80" />
+              <span className="w-2.5 h-2.5 rounded-full bg-yellow-400/80" />
+              <span className="w-2.5 h-2.5 rounded-full bg-green-400/80" />
+              <span className="ml-2 text-xs text-white/50 font-mono">eventhub.app</span>
+            </div>
+            <Image
+              src="/app-preview.png"
+              alt="EventHub app preview"
+              width={800}
+              height={500}
+              className="w-full object-cover object-top"
+              priority
+            />
+          </div>
+
+          <div className="w-10 h-0.5 bg-white/30 mb-6" />
 
           {/* Feature list */}
           <ul className="space-y-4">
@@ -74,38 +95,41 @@ export default function LoginPage() {
             ))}
           </ul>
 
-          {/* CTAs — right after feature list */}
-          <div className="mt-8 flex flex-col gap-3">
-            <a
-              href="https://rahulshettyacademy.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-xs font-semibold text-indigo-700 bg-amber-400 hover:bg-amber-300 transition-colors px-4 py-2.5 rounded-lg w-fit"
-            >
-              Explore all courses at RahulShettyAcademy.com
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
-            </a>
+          {/* CTAs — shown only when backend flag is on */}
+          {showLinks && (
+          <div className="mt-8">
+            <div className="flex flex-col gap-3">
+                <a
+                  href="https://rahulshettyacademy.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-xs font-semibold text-indigo-700 bg-amber-400 hover:bg-amber-300 transition-colors px-4 py-2.5 rounded-lg w-fit"
+                >
+                  Explore all courses at RahulShettyAcademy.com
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </a>
 
-            <a
-              href="https://techsmarthire.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-xs font-semibold text-white bg-violet-500 hover:bg-violet-400 transition-colors px-4 py-2.5 rounded-lg w-fit"
-            >
-              Explore Skill Assessments — QA Job Hiring Platform
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
-            </a>
-
+                <a
+                  href="https://techsmarthire.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-xs font-semibold text-white bg-violet-500 hover:bg-violet-400 transition-colors px-4 py-2.5 rounded-lg w-fit"
+                >
+                  Explore Skill Assessments — QA Job Hiring Platform
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </a>
+            </div>
           </div>
+          )}
         </div>
 
         {/* Social proof */}
         <div>
-          <div className="border-t border-white/20 pt-6">
+          <div className="border-t border-white/20 pt-6 mt-8">
             <p className="text-2xl font-bold">50,000+</p>
             <p className="text-white/60 text-xs mt-0.5">QA engineers trained worldwide</p>
           </div>
@@ -126,6 +150,15 @@ export default function LoginPage() {
         </div>
 
         <div className="w-full max-w-sm">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 leading-tight">
+              The #1 QA Practice Hub<br />for Automation Engineers
+            </h2>
+            <p className="text-sm text-gray-500 mt-2 leading-relaxed">
+              EventHub is a production-grade practice app designed so you can sharpen your testing skills on real-world scenarios — before your next interview or project.
+            </p>
+          </div>
+
           <a
             href="http://localhost:3001/api/docs"
             target="_blank"
