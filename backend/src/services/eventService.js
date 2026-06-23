@@ -13,7 +13,7 @@ async function withPersonalSeats(events, userId) {
 
   return events.map((e) => {
     const userBooked = booked[e.id] || 0;
-    return { ...e, availableSeats: Math.max(0, e.totalSeats - userBooked) };
+    return { ...e, availableSeats: Math.max(0, e.availableSeats - userBooked) };
   });
 }
 
@@ -46,12 +46,7 @@ const eventService = {
   },
 
   async createEvent(data, userId) {
-    // FIFO: prune oldest dynamic event if at limit
-    const count = await eventRepository.countUserDynamic(userId);
-    if (count >= MAX_USER_DYNAMIC_EVENTS) {
-      const oldest = await eventRepository.findOldestUserDynamic(userId);
-      if (oldest) await eventRepository.delete(oldest.id);
-    }
+    const existing = await eventRepository.findByTitleForUser(data.title, userId);
 
     const payload = {
       title:          data.title,
@@ -64,10 +59,20 @@ const eventService = {
       totalSeats:     parseInt(data.totalSeats, 10),
       availableSeats: parseInt(data.totalSeats, 10),
       imageUrl:       data.imageUrl || null,
-      userId,
-      isStatic:       false,
     };
-    return eventRepository.create(payload);
+
+    if (existing) {
+      return eventRepository.update(existing.id, payload);
+    }
+
+    // FIFO: prune oldest dynamic event if at limit
+    const count = await eventRepository.countUserDynamic(userId);
+    if (count >= MAX_USER_DYNAMIC_EVENTS) {
+      const oldest = await eventRepository.findOldestUserDynamic(userId);
+      if (oldest) await eventRepository.delete(oldest.id);
+    }
+
+    return eventRepository.create({ ...payload, userId, isStatic: false });
   },
 
   async updateEvent(id, data, userId) {

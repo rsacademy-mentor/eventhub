@@ -80,6 +80,13 @@ const eventRepository = {
     });
   },
 
+  /** Find a dynamic event owned by this user with the given title (exact match) */
+  async findByTitleForUser(title, userId) {
+    return prisma.event.findFirst({
+      where: { title, userId, isStatic: false },
+    });
+  },
+
   /** Count dynamic events owned by this user */
   async countUserDynamic(userId) {
     return prisma.event.count({ where: { userId, isStatic: false } });
